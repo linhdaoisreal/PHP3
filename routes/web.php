@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TinController;
+
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 use function Laravel\Prompts\select;
@@ -22,7 +27,8 @@ use function Laravel\Prompts\table;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->middleware('flag');
+
 
 Route::get('/tin', [TinController::class, 'index']);
 
@@ -415,6 +421,30 @@ Route::get('more-sql', function(){
 });
 
 //trang insert
-Route::get('/insert-post', function () {
-    return view('admin/insert-post');
+Route::get('/admin', function () {
+    return view('admin.master');
 });
+
+//CRUD
+Route::resource('customers', CustomerController::class);
+
+Route::delete('customers/{customer}/forceDestroy',[CustomerController::class,'forceDestroy'])->name('customers.forceDestroy');
+
+Route::resource('products', ProductController::class);
+Route::delete('products/{product}/forceDestroy', [ProductController::class, 'forceDestroy'])->name('forceDestroy');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
